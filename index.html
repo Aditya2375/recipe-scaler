@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Heirloom Recipe Scaler</title>
+    <meta
+      name="description"
+      content="An antique cookbook recipe scaler that rescales culinary ingredients between serving sizes with persistent storage and realistic folio visuals."
+    />
+    <meta property="og:title" content="Heirloom Recipe Scaler" />
+    <meta
+      property="og:description"
+      content="An antique cookbook recipe scaler that rescales culinary ingredients between serving sizes with persistent storage and realistic folio visuals."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <!-- Floating Top Left Instruments: Gramophone Audio Toggle + Kitchen Time Clock -->
+    <div class="floating-instruments-left" role="complementary" aria-label="Kitchen Instruments">
+      <button
+        id="btn-music"
+        class="floating-gramophone-btn"
+        type="button"
+        aria-label="Toggle ambient antique music"
+        aria-pressed="false"
+        title="Toggle Antique Gramophone Music"
+      >
+        <span class="gramophone-icon" aria-hidden="true">
+          <!-- Stylized Brass Gramophone SVG -->
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+            <path d="M12 3v9.28A4 4 0 1 0 14 16V7h4V3h-6zm-2 15a2 2 0 1 1 0-4 2 2 0 0 1 0 4z" />
+          </svg>
+        </span>
+        <span class="gramophone-label sr-only">Ambient Sound</span>
+      </button>
+
+      <div class="kitchen-clock-pill" id="kitchen-clock-pill" title="Local Kitchen Time">
+        <span class="clock-icon" aria-hidden="true">⏱</span>
+        <span class="clock-label">KITCHEN TIME</span>
+        <span class="clock-digits" id="kitchen-live-clock">--:--:--</span>
+      </div>
+    </div>
+
+    <!-- Floating Top Right: Leather Folio Cover Control -->
+    <div class="floating-controls-right">
+      <button
+        id="btn-toggle-folio"
+        class="floating-leather-btn"
+        type="button"
+        aria-label="Toggle folio cover open or closed"
+      >
+        <span class="leather-btn-stitch" aria-hidden="true"></span>
+        <span id="folio-icon" aria-hidden="true">📖</span>
+        <span id="folio-label">Close Folio</span>
+      </button>
+    </div>
+
+    <!-- Main Tabletop Workspace with 3D Scene Perspective -->
+    <main class="tabletop" id="main-content">
+      <div class="folio-scene" id="folio-scene">
+        <div class="book-container" id="book-container">
+
+          <!-- 3D SWINGING HARDCOVER OVERLAY (Hinged on Left Edge) -->
+          <div
+            id="book-cover-panel"
+            class="book-cover-panel"
+            role="region"
+            aria-label="Book cover"
+            tabindex="0"
+          >
+            <div class="corner-bracket top-left" aria-hidden="true"></div>
+            <div class="corner-bracket top-right" aria-hidden="true"></div>
+            <div class="corner-bracket bottom-left" aria-hidden="true"></div>
+            <div class="corner-bracket bottom-right" aria-hidden="true"></div>
+            <div class="cover-spine-edge" aria-hidden="true"></div>
+            <div class="cover-clasp" aria-hidden="true">
+              <span class="clasp-rivet"></span>
+            </div>
+
+            <!-- Stitched Border on Cover -->
+            <div class="cover-stitch-border" aria-hidden="true"></div>
+
+            <!-- Center Gold Medallion -->
+            <div class="cover-medallion">
+              <div class="medallion-ring outer-ring"></div>
+              <div class="medallion-ring inner-ring"></div>
+              <div class="medallion-stars" aria-hidden="true">★ ★ ★</div>
+              <h1 class="medallion-title">FAMILY RECIPE BOOK</h1>
+              <div class="medallion-line" aria-hidden="true"></div>
+              <p class="medallion-est">EST. 2026</p>
+              <p class="medallion-subtitle">RECIPES &amp; RECOLLECTIONS</p>
+              <div class="medallion-wheat" aria-hidden="true">❖ ❦ ❖</div>
+            </div>
+
+            <p class="cover-hint">Click or press Enter to open folio</p>
+          </div>
+
+          <!-- INSIDE TWO-LEAF SPREAD (On Antique Cream Paper) -->
+          <article class="folio-spread" id="folio-spread" aria-label="Cookbook pages spread">
+            <!-- Saddle stitch border around the entire inside folio -->
+            <div class="saddle-stitch-border" aria-hidden="true"></div>
+
+            <!-- Folio Master Inside Header -->
+            <header class="folio-header">
+              <div class="folio-header-est">EST. 2026 · ARCHIVE DOSSIER</div>
+              <h2 class="folio-header-title">The Heirloom Culinary Proportioner</h2>
+              <p class="folio-header-sub">
+                Calibrate provisions faithfully for crowds great and small
+              </p>
+              <div class="header-brass-rule" aria-hidden="true"></div>
+            </header>
+
+            <!-- Two-Leaf Layout Grid -->
+            <div class="spread-leaves">
+
+              <!-- LEFT LEAF: INPUT PAGE -->
+              <section class="leaf leaf-left" aria-labelledby="leaf-left-title">
+                <div class="leaf-content">
+                  <header class="leaf-header">
+                    <span class="leaf-folio-tag">LEFT LEAF · PROVISIONS DOSSIER</span>
+                    <h3 id="leaf-left-title" class="leaf-title">Original Recipe</h3>
+                    <div class="leaf-hairline" aria-hidden="true"></div>
+                  </header>
+
+                  <!-- Try One Quick Sample Row (fills whole form) -->
+                  <div class="try-row" role="group" aria-label="Sample recipe presets">
+                    <span class="try-label">Try one:</span>
+                    <div class="try-chips">
+                      <button type="button" class="sample-chip" id="chip-sample-dal">
+                        Grandmother's Dal
+                      </button>
+                      <button type="button" class="sample-chip" id="chip-sample-pasta">
+                        Sunday Pasta
+                      </button>
+                      <button type="button" class="sample-chip" id="chip-sample-cake">
+                        Chocolate Cake
+                      </button>
+                    </div>
+                  </div>
+
+                  <form id="scaler-form" class="scaler-form" novalidate>
+                    <!-- Dish Name -->
+                    <div class="field-block">
+                      <label for="dish-name" class="field-label">
+                        <span class="label-heading">Dish Name</span>
+                        <span class="label-sub">What culinary delight is being prepared?</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="dish-name"
+                        class="antique-input"
+                        placeholder="e.g. Dal Tadka, Biryani, Pasta, Chocolate Cake"
+                        autocomplete="off"
+                        required
+                      />
+                    </div>
+
+                    <!-- Servings Recipe Makes -->
+                    <div class="field-block">
+                      <label for="servings-original" class="field-label">
+                        <span class="label-heading">Servings Recipe Makes</span>
+                        <span class="label-sub">Original yield stated in recipe</span>
+                      </label>
+                      <div class="number-input-row">
+                        <input
+                          type="number"
+                          id="servings-original"
+                          class="antique-input number-input"
+                          placeholder="e.g. 4"
+                          min="0.1"
+                          step="any"
+                          required
+                        />
+                        <span class="input-unit-tag">servings</span>
+                      </div>
+                    </div>
+
+                    <!-- Quick Chips & Servings Wanted -->
+                    <div class="field-block">
+                      <div class="chips-header">
+                        <label for="servings-wanted" class="field-label mb-0">
+                          <span class="label-heading">Servings Wanted</span>
+                          <span class="label-sub">Desired crowd size</span>
+                        </label>
+                        <!-- Quick multiplier chips -->
+                        <div class="quick-chips" role="group" aria-label="Crowd multipliers">
+                          <button type="button" class="chip-btn" id="chip-half" title="Set crowd to Half">
+                            ½ Half
+                          </button>
+                          <button type="button" class="chip-btn" id="chip-double" title="Set crowd to Double">
+                            2× Double
+                          </button>
+                          <button type="button" class="chip-btn" id="chip-triple" title="Set crowd to Triple">
+                            3× Triple
+                          </button>
+                        </div>
+                      </div>
+
+                      <div class="number-input-row">
+                        <input
+                          type="number"
+                          id="servings-wanted"
+                          class="antique-input number-input"
+                          placeholder="e.g. 10"
+                          min="0.1"
+                          step="any"
+                          required
+                        />
+                        <span class="input-unit-tag">servings</span>
+                      </div>
+                    </div>
+
+                    <!-- Three Ingredient Rows -->
+                    <fieldset class="ingredients-fieldset">
+                      <legend class="fieldset-legend">Three Essential Ingredients</legend>
+
+                      <!-- Row 1 -->
+                      <div class="ingredient-row">
+                        <span class="row-index" aria-hidden="true">I.</span>
+                        <div class="row-inputs">
+                          <div class="field-grow-2">
+                            <label for="ing-name-1" class="micro-label">Ingredient 1</label>
+                            <input
+                              type="text"
+                              id="ing-name-1"
+                              class="antique-input"
+                              placeholder="e.g. Yellow Lentils"
+                              autocomplete="off"
+                              required
+                            />
+                          </div>
+                          <div class="field-grow-1">
+                            <label for="ing-amount-1" class="micro-label">Amount &amp; Unit</label>
+                            <input
+                              type="text"
+                              id="ing-amount-1"
+                              class="antique-input"
+                              placeholder="e.g. 200 g, 1 cup"
+                              autocomplete="off"
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Row 2 -->
+                      <div class="ingredient-row">
+                        <span class="row-index" aria-hidden="true">II.</span>
+                        <div class="row-inputs">
+                          <div class="field-grow-2">
+                            <label for="ing-name-2" class="micro-label">Ingredient 2</label>
+                            <input
+                              type="text"
+                              id="ing-name-2"
+                              class="antique-input"
+                              placeholder="e.g. Pure Ghee"
+                              autocomplete="off"
+                              required
+                            />
+                          </div>
+                          <div class="field-grow-1">
+                            <label for="ing-amount-2" class="micro-label">Amount &amp; Unit</label>
+                            <input
+                              type="text"
+                              id="ing-amount-2"
+                              class="antique-input"
+                              placeholder="e.g. 2 tbsp"
+                              autocomplete="off"
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Row 3 -->
+                      <div class="ingredient-row">
+                        <span class="row-index" aria-hidden="true">III.</span>
+                        <div class="row-inputs">
+                          <div class="field-grow-2">
+                            <label for="ing-name-3" class="micro-label">Ingredient 3</label>
+                            <input
+                              type="text"
+                              id="ing-name-3"
+                              class="antique-input"
+                              placeholder="e.g. Water"
+                              autocomplete="off"
+                              required
+                            />
+                          </div>
+                          <div class="field-grow-1">
+                            <label for="ing-amount-3" class="micro-label">Amount &amp; Unit</label>
+                            <input
+                              type="text"
+                              id="ing-amount-3"
+                              class="antique-input"
+                              placeholder="e.g. 1 cup, a pinch"
+                              autocomplete="off"
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </fieldset>
+
+                    <!-- Validation Box -->
+                    <div
+                      id="validation-box"
+                      class="validation-box hidden"
+                      role="alert"
+                      aria-live="assertive"
+                    >
+                      <span class="alert-symbol" aria-hidden="true">⚠</span>
+                      <div class="alert-details">
+                        <strong class="alert-head">Chef's Notice</strong>
+                        <p id="validation-message" class="alert-text"></p>
+                      </div>
+                    </div>
+
+                    <!-- Rescale Action Button & Reset Form -->
+                    <div class="form-actions">
+                      <button type="submit" id="btn-rescale" class="btn-oxblood">
+                        <span class="btn-label">Rescale Recipe</span>
+                        <span class="btn-flourish" aria-hidden="true">❧</span>
+                      </button>
+                      <button
+                        type="button"
+                        id="btn-reset-form"
+                        class="btn-reset-inline"
+                        title="Clear form and remove saved result"
+                      >
+                        Reset Form &amp; Results
+                      </button>
+                    </div>
+
+                    <!-- Quiet Persistence Note -->
+                    <p class="note-saved-locally">
+                      Saved locally, restored on your next visit.
+                    </p>
+                  </form>
+                </div>
+              </section>
+
+              <!-- Center Folio Binding Gutter -->
+              <div class="leaf-spine-gutter" aria-hidden="true"></div>
+
+              <!-- RIGHT LEAF: PLACEHOLDER OR RESCALED RECIPE CARD -->
+              <section class="leaf leaf-right" aria-labelledby="leaf-right-title">
+                <div class="leaf-content">
+
+                  <!-- PLACEHOLDER STATE (Awaiting recipe) -->
+                  <div id="right-placeholder" class="placeholder-state">
+                    <header class="leaf-header">
+                      <span class="leaf-folio-tag">RIGHT LEAF · RECIPE FOLIO</span>
+                      <h3 id="leaf-right-title" class="leaf-title">Awaiting Your Recipe</h3>
+                      <div class="leaf-hairline" aria-hidden="true"></div>
+                    </header>
+
+                    <div class="placeholder-body">
+                      <div class="antique-crest-frame">
+                        <span class="crest-glyph" aria-hidden="true">⚖</span>
+                      </div>
+                      <p class="placeholder-lead">
+                        The right folio stands ready to transcribe your scaled measures.
+                      </p>
+                      <p class="placeholder-note">
+                        Complete the dish provisions on the left, then press
+                        <strong>Rescale Recipe</strong> to calibrate your crowd proportions.
+                      </p>
+
+                      <div class="placeholder-quote">
+                        <span class="quote-mark">“</span>
+                        <em>Good food brings all friends to one table.</em>
+                        <span class="quote-mark">”</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- RESULT STATE (Rescaled Official Recipe Card with Zigzag Torn Edges) -->
+                  <div id="right-result" class="result-card-state hidden">
+                    <div class="torn-recipe-card" id="printable-recipe-card">
+                      <!-- Top Torn Serrated Edge -->
+                      <div class="torn-edge-top" aria-hidden="true"></div>
+
+                      <!-- Document Particulars Header -->
+                      <div class="card-doc-header">
+                        <div class="doc-ref-row">
+                          <span class="doc-ref-code" id="doc-ref-code">REF: RCP-4821</span>
+                          <span class="doc-date" id="doc-date-string">SCALED: TODAY</span>
+                        </div>
+                        <div class="stamp-badge" id="result-serves-badge">
+                          SERVES 10 GUESTS
+                        </div>
+                      </div>
+
+                      <!-- Dish Title & Scale Badge -->
+                      <div class="dish-title-row">
+                        <h3 id="result-dish-heading" class="result-dish-heading">
+                          <!-- Dynamic Dish Name -->
+                        </h3>
+                        <span class="scale-factor-pill" id="scale-factor-pill">
+                          <!-- e.g. ×2.5 -->
+                        </span>
+                      </div>
+
+                      <!-- Dark Round Rubber Stamp: SCALED & VERIFIED -->
+                      <div class="rubber-stamp" aria-label="Scaled and Verified rubber stamp">
+                        <div class="rubber-stamp-inner">
+                          <span class="stamp-stars">★ ★ ★</span>
+                          <span class="stamp-main">SCALED &amp; VERIFIED</span>
+                          <span class="stamp-tagline">CHEF LEDGER · CANON</span>
+                        </div>
+                      </div>
+
+                      <p class="result-servings-line" id="result-servings-line">
+                        <!-- e.g. Serves 10 · Scaled from recipe for 4 -->
+                      </p>
+
+                      <div class="leaf-hairline" aria-hidden="true"></div>
+
+                      <!-- Scaled Ingredients Table with Per Serving Column -->
+                      <div class="ingredients-card">
+                        <div class="card-table-head">
+                          <span class="col-ing">INGREDIENT PROVISIONS</span>
+                          <span class="col-per-serv">PER SERVING</span>
+                          <span class="col-total">TOTAL SCALED</span>
+                        </div>
+                        <ul id="scaled-ingredients-list" class="scaled-list" aria-label="Rescaled ingredients">
+                          <!-- Injected via JavaScript -->
+                        </ul>
+                      </div>
+
+                      <!-- Math Verification Audit Strip -->
+                      <div class="math-audit-strip" id="math-audit-strip" role="note">
+                        <span class="audit-icon" aria-hidden="true">✓</span>
+                        <span class="audit-text" id="math-audit-text">
+                          <!-- e.g. Verification: 200 g × 2.5 = 500 g -->
+                        </span>
+                      </div>
+
+                      <!-- Two-Line Estimated Cooking Time Card -->
+                      <div class="cooking-time-card" id="cooking-time-card">
+                        <div class="time-header">
+                          <span class="time-icon" aria-hidden="true">⏱</span>
+                          <span class="time-title">ESTIMATED COOKING DURATION</span>
+                        </div>
+                        <p class="time-line line-original" id="time-line-original">
+                          <!-- e.g. Original 4 servings: about 35 minutes -->
+                        </p>
+                        <p class="time-line line-rescaled" id="time-line-rescaled">
+                          <!-- e.g. For 10 servings: plan about 40 to 45 minutes -->
+                        </p>
+                        <p class="time-note">
+                          Note: Bigger batches take slightly longer for full heat distribution and simmering.
+                        </p>
+                      </div>
+
+                      <!-- Decorative CSS-Only Barcode & Receipt Line -->
+                      <div class="card-barcode-wrap">
+                        <div class="barcode-bars" aria-hidden="true"></div>
+                        <div class="barcode-number" id="barcode-number">#RCP-9418247</div>
+                        <div class="barcode-wiki-wrap">
+                          <a
+                            id="barcode-wiki-link"
+                            class="barcode-wiki-link"
+                            href="https://en.wikipedia.org/wiki/Special:Search/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Read more about this dish on Wikipedia
+                          </a>
+                        </div>
+                        <div class="barcode-farewell">
+                          Thanks for cooking with us, scaled fresh.
+                        </div>
+                      </div>
+
+                      <!-- Bottom Torn Serrated Edge -->
+                      <div class="torn-edge-bottom" aria-hidden="true"></div>
+                    </div>
+
+                    <!-- Result Action Buttons -->
+                    <div class="result-buttons">
+                      <button
+                        type="button"
+                        id="btn-print-recipe"
+                        class="btn-secondary"
+                        onclick="window.focus(); window.print();"
+                        title="Print this rescaled recipe card"
+                      >
+                        <span aria-hidden="true">🖨</span> Print Recipe
+                      </button>
+                      <button
+                        type="button"
+                        id="btn-copy-recipe"
+                        class="btn-secondary"
+                        title="Copy plain-text recipe to clipboard"
+                      >
+                        <span aria-hidden="true">📋</span> Copy Recipe
+                      </button>
+                      <button
+                        type="button"
+                        id="btn-start-over"
+                        class="btn-ghost"
+                        title="Clear saved recipe and reset"
+                      >
+                        <span>↺</span> Clear Recipe
+                      </button>
+                    </div>
+
+                    <!-- Toast Feedback for Copy -->
+                    <div id="copy-toast" class="copy-toast hidden" role="status" aria-live="polite">
+                      Recipe copied to clipboard!
+                    </div>
+                  </div>
+
+                </div>
+              </section>
+
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </main>
+
+    <!-- Vanilla JavaScript File -->
+    <script src="./script.js"></script>
+  </body>
+</html>
