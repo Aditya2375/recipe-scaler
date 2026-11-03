@@ -8,16 +8,20 @@
       name="description"
       content="An antique cookbook recipe scaler that rescales culinary ingredients between serving sizes with persistent storage and realistic folio visuals."
     />
-    <meta property="og:title" content="Heirloom Recipe Scaler" />
+    <link rel="canonical" href="https://aditya2375.github.io/recipe-scaler/">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta property="og:url" content="https://aditya2375.github.io/recipe-scaler/">
+<meta property="og:title" content="Heirloom Recipe Scaler" />
     <meta
       property="og:description"
       content="An antique cookbook recipe scaler that rescales culinary ingredients between serving sizes with persistent storage and realistic folio visuals."
     />
     <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:card" content="summary" />
     <link rel="stylesheet" href="./style.css" />
   </head>
-  <body>
+  <body><a class="skip-link" href="#main-content">Skip to recipe</a>
     <!-- Floating Top Left Instruments: Gramophone Audio Toggle + Kitchen Time Clock -->
     <div class="floating-instruments-left" role="complementary" aria-label="Kitchen Instruments">
       <button
@@ -59,7 +63,7 @@
     </div>
 
     <!-- Main Tabletop Workspace with 3D Scene Perspective -->
-    <main class="tabletop" id="main-content">
+    <main tabindex="-1" class="tabletop" id="main-content">
       <div class="folio-scene" id="folio-scene">
         <div class="book-container" id="book-container">
 
@@ -440,11 +444,11 @@
                         </span>
                       </div>
 
-                      <!-- Two-Line Estimated Cooking Time Card -->
+                      <!-- Two-Line Cooking guidance Card -->
                       <div class="cooking-time-card" id="cooking-time-card">
                         <div class="time-header">
                           <span class="time-icon" aria-hidden="true">⏱</span>
-                          <span class="time-title">ESTIMATED COOKING DURATION</span>
+                          <span class="time-title">COOKING GUIDANCE</span>
                         </div>
                         <p class="time-line line-original" id="time-line-original">
                           <!-- e.g. Original 4 servings: about 35 minutes -->
@@ -453,7 +457,7 @@
                           <!-- e.g. For 10 servings: plan about 40 to 45 minutes -->
                         </p>
                         <p class="time-note">
-                          Note: Bigger batches take slightly longer for full heat distribution and simmering.
+                          Scaling amounts does not establish safe cooking time or doneness.
                         </p>
                       </div>
 
