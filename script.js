@@ -7,28 +7,7 @@
   'use strict';
 
   const STORAGE_KEY = 'heirloom_recipe_scaler_data';
-
-  // --- Common Dish Cooking Time Database (Minutes) ---
-  const DISH_COOKING_TIMES = [
-    { keys: ['dal', 'daal', 'dhal', 'lentil', 'sambhar', 'sambar'], minutes: 35, label: 'dal' },
-    { keys: ['rice', 'pulao', 'jeera rice', 'basmati', 'fried rice'], minutes: 20, label: 'rice' },
-    { keys: ['biryani', 'biriyani'], minutes: 50, label: 'biryani' },
-    { keys: ['pasta', 'spaghetti', 'penne', 'macaroni', 'lasagna'], minutes: 20, label: 'pasta' },
-    { keys: ['cake', 'sponge', 'brownie', 'muffin', 'loaf'], minutes: 45, label: 'cake' },
-    { keys: ['curry', 'masala', 'korma', 'paneer', 'butter chicken', 'tikka'], minutes: 40, label: 'curry' },
-    { keys: ['soup', 'broth', 'stew', 'chowder'], minutes: 30, label: 'soup' },
-    { keys: ['dosa', 'crepe', 'pancake'], minutes: 15, label: 'dosa' },
-    { keys: ['chapati', 'roti', 'paratha', 'naan', 'flatbread'], minutes: 25, label: 'chapati' },
-    { keys: ['pizza'], minutes: 25, label: 'pizza' },
-    { keys: ['khichdi', 'khichri', 'pongal'], minutes: 30, label: 'khichdi' },
-    { keys: ['upma'], minutes: 15, label: 'upma' },
-    { keys: ['poha'], minutes: 15, label: 'poha' },
-    { keys: ['maggi', 'noodles', 'ramen'], minutes: 10, label: 'noodles' },
-    { keys: ['chicken', 'roast chicken'], minutes: 45, label: 'chicken' },
-    { keys: ['fish', 'salmon', 'seafood'], minutes: 20, label: 'fish' },
-    { keys: ['cookie', 'cookies', 'biscuit'], minutes: 20, label: 'cookies' },
-    { keys: ['bread', 'focaccia', 'sourdough'], minutes: 50, label: 'bread' },
-  ];
+  const escapeHTML = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
   // --- DOM Elements ---
   const bookCoverPanel = document.getElementById('book-cover-panel');
@@ -117,9 +96,10 @@
    * Formats a clean decimal with trailing zeros trimmed (e.g. 66.67, 2.5, 4)
    */
   function formatSmartDecimal(num) {
-    if (typeof num !== 'number' || isNaN(num)) return '';
-    const rounded = Math.round(num * 100) / 100;
-    return Number(rounded.toFixed(2)).toString();
+    if (!Number.isFinite(num)) return '';
+    if(num>0 && num<0.000001)return '<0.000001';
+    const rounded = Math.round(num * 1000000) / 1000000;
+    return Number(rounded.toFixed(6)).toString();
   }
 
   /**
@@ -127,22 +107,22 @@
    * Returns { num, den } or null
    */
   function getKitchenFractionParts(val) {
-    if (typeof val !== 'number' || isNaN(val)) return null;
+    if (!Number.isFinite(val)) return null;
     const whole = Math.floor(val);
     const frac = val - whole;
 
     let num = 0;
     let den = 0;
 
-    if (Math.abs(frac - 0.25) <= 0.04) {
+    if (Math.abs(frac - 0.25) <= 0.0001) {
       num = 1; den = 4;
-    } else if (Math.abs(frac - 0.3333) <= 0.04 || Math.abs(frac - 0.33) <= 0.04) {
+    } else if (Math.abs(frac - 0.3333) <= 0.0001 || Math.abs(frac - 0.33) <= 0.0001) {
       num = 1; den = 3;
-    } else if (Math.abs(frac - 0.5) <= 0.04) {
+    } else if (Math.abs(frac - 0.5) <= 0.0001) {
       num = 1; den = 2;
-    } else if (Math.abs(frac - 0.6667) <= 0.04 || Math.abs(frac - 0.67) <= 0.04) {
+    } else if (Math.abs(frac - 0.6667) <= 0.0001 || Math.abs(frac - 0.67) <= 0.0001) {
       num = 2; den = 3;
-    } else if (Math.abs(frac - 0.75) <= 0.04) {
+    } else if (Math.abs(frac - 0.75) <= 0.0001) {
       num = 3; den = 4;
     }
 
@@ -157,7 +137,7 @@
    * 1 1/2 -> <span class="frac-wrap">1 <span class="frac-stack"><span class="frac-num">1</span><span class="frac-den">2</span></span></span>
    */
   function formatKitchenFractionHTML(val) {
-    if (typeof val !== 'number' || isNaN(val)) return '';
+    if (!Number.isFinite(val)) return '';
     const parts = getKitchenFractionParts(val);
     if (parts) {
       const stack = `<span class="frac-stack"><span class="frac-num">${parts.num}</span><span class="frac-den">${parts.den}</span></span>`;
@@ -166,14 +146,14 @@
       }
       return `<span class="frac-wrap">${stack}</span>`;
     }
-    return formatSmartDecimal(val);
+    return escapeHTML(formatSmartDecimal(val));
   }
 
   /**
    * Plain text fraction representation for clipboard copy (e.g. 1 1/2 or 1/2)
    */
   function formatKitchenFractionPlain(val) {
-    if (typeof val !== 'number' || isNaN(val)) return '';
+    if (!Number.isFinite(val)) return '';
     const parts = getKitchenFractionParts(val);
     if (parts) {
       if (parts.whole > 0) {
@@ -192,6 +172,8 @@
   function scaleAmountDetailed(rawStr, multiplier, servingsWanted, servingsOrig) {
     if (!rawStr) return { displayHTML: '', displayPlain: '', perServingHTML: '', perServingPlain: '', isNumeric: false, unit: '', rawVal: 0 };
     const str = rawStr.trim();
+    if (/^\d+(?:\s+\d+)?\s*\/\s*0(?:\D|$)/.test(str)) throw new Error('A fraction cannot have a zero denominator.');
+    if (/^[-+]/.test(str) || /^\d.*(?:\d\s*[-–]\s*\d)/.test(str)) throw new Error('Use one positive amount, not a negative value or a range.');
 
     let val = null;
     let unit = '';
@@ -231,9 +213,10 @@
     }
 
     // If numeric value found:
-    if (val !== null && !isNaN(val)) {
+    if (val !== null && Number.isFinite(val)) {
       const scaledVal = val * multiplier;
       const perServingVal = val / servingsOrig;
+      if(!Number.isFinite(scaledVal)||!Number.isFinite(perServingVal)||scaledVal>1e9)throw new Error('The scaled amount is too large.');
 
       const scaledHTML = formatKitchenFractionHTML(scaledVal);
       const scaledPlain = formatKitchenFractionPlain(scaledVal);
@@ -241,10 +224,10 @@
       const perServHTML = formatKitchenFractionHTML(perServingVal);
       const perServPlain = formatKitchenFractionPlain(perServingVal);
 
-      const displayHTML = unit ? `${scaledHTML} ${unit}` : scaledHTML;
+      const displayHTML = unit ? `${scaledHTML} ${escapeHTML(unit)}` : scaledHTML;
       const displayPlain = unit ? `${scaledPlain} ${unit}` : scaledPlain;
 
-      const perServingHTML = unit ? `${perServHTML} ${unit}` : perServHTML;
+      const perServingHTML = unit ? `${perServHTML} ${escapeHTML(unit)}` : perServHTML;
       const perServingPlain = unit ? `${perServPlain} ${unit}` : perServPlain;
 
       return {
@@ -261,7 +244,7 @@
 
     // Non-numeric (e.g. "a pinch", "to taste")
     return {
-      displayHTML: str,
+      displayHTML: escapeHTML(str),
       displayPlain: str,
       perServingHTML: '—',
       perServingPlain: '—',
@@ -276,57 +259,8 @@
   // COOKING TIME ESTIMATOR (TWO ESTIMATES + BATCH NOTE)
   // ==========================================================================
 
-  function estimateCookingTime(dishName, sOrig, sWanted) {
-    const lower = (dishName || '').toLowerCase();
-    let matchedDish = null;
-
-    for (let i = 0; i < DISH_COOKING_TIMES.length; i++) {
-      const entry = DISH_COOKING_TIMES[i];
-      for (let k = 0; k < entry.keys.length; k++) {
-        if (lower.includes(entry.keys[k])) {
-          matchedDish = entry;
-          break;
-        }
-      }
-      if (matchedDish) break;
-    }
-
-    const ratio = sWanted / sOrig;
-
-    if (matchedDish) {
-      const baseMin = matchedDish.minutes;
-      const line1 = `Original ${formatSmartDecimal(sOrig)} servings: about ${baseMin} minutes`;
-
-      let line2 = '';
-      if (ratio > 1) {
-        const extraMin = Math.round(Math.min(baseMin * 0.4, (ratio - 1) * 3 + 4));
-        const low = baseMin + Math.max(3, extraMin - 2);
-        const high = baseMin + extraMin + 3;
-        line2 = `For ${formatSmartDecimal(sWanted)} servings: plan about ${low} to ${high} minutes`;
-      } else if (ratio < 1) {
-        const lessMin = Math.round(Math.min(baseMin * 0.3, (1 - ratio) * 4 + 2));
-        const low = Math.max(8, baseMin - lessMin - 2);
-        const high = Math.max(10, baseMin - lessMin + 2);
-        line2 = `For ${formatSmartDecimal(sWanted)} servings: plan about ${low} to ${high} minutes`;
-      } else {
-        line2 = `For ${formatSmartDecimal(sWanted)} servings: plan about ${baseMin} minutes`;
-      }
-
-      return { line1, line2 };
-    }
-
-    // Generic fallback for unmatched dishes
-    const line1 = `Original ${formatSmartDecimal(sOrig)} servings: typical home prep ~30 to 35 minutes`;
-    let line2 = '';
-    if (ratio > 1) {
-      line2 = `For ${formatSmartDecimal(sWanted)} servings: plan about 40 to 45 minutes`;
-    } else if (ratio < 1) {
-      line2 = `For ${formatSmartDecimal(sWanted)} servings: plan about 25 to 30 minutes`;
-    } else {
-      line2 = `For ${formatSmartDecimal(sWanted)} servings: plan about 30 to 35 minutes`;
-    }
-
-    return { line1, line2 };
+  function estimateCookingTime() {
+    return {line1:'Cooking time cannot be inferred from a dish name or serving ratio.',line2:'Use your original recipe, equipment and doneness guidance. Ingredient scaling does not scale time or establish food safety.'};
   }
 
   // ==========================================================================
@@ -342,7 +276,6 @@
       folioLabel.textContent = 'Close Folio';
     }
 
-    initAudio();
   }
 
   function closeFolio() {
@@ -369,7 +302,7 @@
 
   function applyMultiplierChip(factor) {
     const rawOrig = servingsOrigInput.value.trim();
-    const sOrig = parseFloat(rawOrig);
+    const sOrig = Number(rawOrig);
 
     if (!rawOrig || isNaN(sOrig) || sOrig <= 0) {
       showValidationError(
@@ -450,19 +383,19 @@
       return;
     }
 
-    const sOrig = parseFloat(rawOrig);
-    const sWanted = parseFloat(rawWanted);
+    const sOrig = Number(rawOrig);
+    const sWanted = Number(rawWanted);
 
-    if (isNaN(sOrig) || isNaN(sWanted)) {
+    if (!Number.isFinite(sOrig) || !Number.isFinite(sWanted)) {
       showValidationError(
         'Servings must be numeric values. Please avoid letters or symbols in the serving counts.'
       );
       return;
     }
 
-    if (sOrig <= 0 || sWanted <= 0) {
+    if (sOrig < 0.01 || sWanted < 0.01 || sOrig > 10000 || sWanted > 10000) {
       showValidationError(
-        'Servings must be greater than zero. Empty, zero, or negative serving sizes cannot be scaled.'
+        'Use serving counts between 0.01 and 10,000.'
       );
       return;
     }
@@ -486,9 +419,10 @@
     const multiplier = sWanted / sOrig;
 
     // 5. Scale Ingredients with detailed fractions & per-serving
-    const scaled1 = scaleAmountDetailed(amt1, multiplier, sWanted, sOrig);
-    const scaled2 = scaleAmountDetailed(amt2, multiplier, sWanted, sOrig);
-    const scaled3 = scaleAmountDetailed(amt3, multiplier, sWanted, sOrig);
+    if([dish,name1,name2,name3,amt1,amt2,amt3].some(v=>v.length>200)){showValidationError('Keep names and amounts under 200 characters.');return;}
+    let scaled1,scaled2,scaled3;
+    try {scaled1=scaleAmountDetailed(amt1,multiplier,sWanted,sOrig);scaled2=scaleAmountDetailed(amt2,multiplier,sWanted,sOrig);scaled3=scaleAmountDetailed(amt3,multiplier,sWanted,sOrig);}
+    catch(e){showValidationError(e.message);return;}
 
     // 6. Estimate Cooking Time
     const timeEst = estimateCookingTime(dish, sOrig, sWanted);
@@ -557,7 +491,7 @@
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(recipeData));
     } catch (e) {
-      console.warn('LocalStorage error:', e);
+      showValidationError('Browser storage is unavailable or full. This recipe is in memory only; copy or print it before leaving.');
     }
 
     // 9. Render Result on the Right Leaf
@@ -589,6 +523,8 @@
     // Populate Ingredients Table (with Per Serving column & stacked fractions)
     scaledIngredientsList.innerHTML = '';
     data.ingredients.forEach(function (ing, idx) {
+      const safe = scaleAmountDetailed(ing.originalAmount,data.multiplier,data.servingsWanted,data.servingsOriginal);
+      ing.scaledAmountHTML=safe.displayHTML;ing.scaledAmountPlain=safe.displayPlain;ing.perServingHTML=safe.perServingHTML;ing.perServingPlain=safe.perServingPlain;ing.isNumeric=safe.isNumeric;ing.rawOrigVal=safe.rawOrigVal;ing.rawScaledVal=safe.rawScaledVal;ing.unit=safe.unit;
       const li = document.createElement('li');
       li.className = 'scaled-row-item';
 
@@ -617,9 +553,9 @@
     });
 
     if (firstNumIng) {
-      const origStr = `${formatKitchenFractionHTML(firstNumIng.rawOrigVal)} ${firstNumIng.unit}`.trim();
-      const scaledStr = `${formatKitchenFractionHTML(firstNumIng.rawScaledVal)} ${firstNumIng.unit}`.trim();
-      mathAuditText.innerHTML = `Audit Math: ${origStr} (${firstNumIng.name}) × ${formatSmartDecimal(data.multiplier)} = <strong>${scaledStr}</strong>`;
+      const origStr = `${formatKitchenFractionHTML(firstNumIng.rawOrigVal)} ${escapeHTML(firstNumIng.unit)}`.trim();
+      const scaledStr = `${formatKitchenFractionHTML(firstNumIng.rawScaledVal)} ${escapeHTML(firstNumIng.unit)}`.trim();
+      mathAuditText.innerHTML = `Audit Math: ${origStr} (${escapeHTML(firstNumIng.name)}) × ${formatSmartDecimal(data.multiplier)} = <strong>${scaledStr}</strong>`;
     } else {
       mathAuditText.textContent = `Audit Math: Yield ${formatSmartDecimal(data.servingsOriginal)} × ${formatSmartDecimal(data.multiplier)} = ${formatSmartDecimal(data.servingsWanted)} Servings`;
     }
@@ -637,7 +573,7 @@
     if (barcodeWikiLink) {
       const cleanDish = (data.dishName || '').trim();
       const wikiSlug = cleanDish.replace(/\s+/g, '_');
-      barcodeWikiLink.href = `https://en.wikipedia.org/wiki/Special:Search/${wikiSlug}`;
+      barcodeWikiLink.href = `https://en.wikipedia.org/wiki/Special:Search/${encodeURIComponent(wikiSlug)}`;
     }
 
     // Swap Right Leaf View
@@ -698,7 +634,7 @@
       `Document Ref: ${currentRecipeData.refCode} · Date: ${currentRecipeData.dateString}`,
       `Serves: ${formatSmartDecimal(currentRecipeData.servingsWanted)} (Scaled by ×${formatSmartDecimal(currentRecipeData.multiplier)} from ${formatSmartDecimal(currentRecipeData.servingsOriginal)} servings)`,
       '',
-      'COOKING DURATION:',
+      'COOKING GUIDANCE:',
       `• ${currentRecipeData.timeLine1}`,
       `• ${currentRecipeData.timeLine2}`,
       '',
@@ -736,8 +672,8 @@
     textarea.focus();
     textarea.select();
     try {
-      document.execCommand('copy');
-      showCopyToast();
+      if(document.execCommand('copy'))showCopyToast();
+      else showValidationError('Copy failed. Select and copy the recipe text, or print it.');
     } catch (err) {
       console.warn('Copy execCommand failed', err);
     }
@@ -851,19 +787,20 @@
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
+        if(raw.length>20000)throw new Error("Saved recipe too large");
         savedData = JSON.parse(raw);
       }
     } catch (e) {
-      console.warn('Failed to parse saved data from localStorage:', e);
+      showValidationError('Saved recipe could not be read. Browser data is unchanged. Re-enter it to replace the unreadable record.');
     }
 
     if (
       savedData &&
-      savedData.dishName &&
-      savedData.servingsOriginal &&
-      savedData.servingsWanted &&
+      typeof savedData.dishName==='string' && savedData.dishName.length<=200 &&
+      Number.isFinite(savedData.servingsOriginal) && savedData.servingsOriginal>=0.01 && savedData.servingsOriginal<=10000 &&
+      Number.isFinite(savedData.servingsWanted) && savedData.servingsWanted>=0.01 && savedData.servingsWanted<=10000 &&
       Array.isArray(savedData.ingredients) &&
-      savedData.ingredients.length === 3
+      savedData.ingredients.length === 3 && savedData.ingredients.every(ing=>ing&&typeof ing.name==='string'&&ing.name.length<=200&&typeof ing.originalAmount==='string'&&ing.originalAmount.length<=200)
     ) {
       // Pre-fill inputs on Left Leaf
       dishNameInput.value = savedData.dishName;
@@ -883,53 +820,15 @@
         ingAmount3Input.value = savedData.ingredients[2].originalAmount;
       }
 
-      // Ensure time lines & document particulars exist
-      if (!savedData.timeLine1 || !savedData.timeLine2) {
-        const timeEst = estimateCookingTime(
-          savedData.dishName,
-          savedData.servingsOriginal,
-          savedData.servingsWanted
-        );
-        savedData.timeLine1 = timeEst.line1;
-        savedData.timeLine2 = timeEst.line2;
-      }
-
-      if (!savedData.refCode) {
-        savedData.refCode = 'RCP-' + Math.floor(1000 + Math.random() * 9000);
-      }
-      if (!savedData.dateString) {
-        savedData.dateString = new Date().toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric',
-        });
-      }
-      if (!savedData.receiptNum) {
-        savedData.receiptNum = '#RCP-' + Math.floor(1000000 + Math.random() * 9000000);
-      }
-
-      // Re-evaluate detailed fraction HTML if needed
-      savedData.ingredients.forEach(function (ing) {
-        if (!ing.perServingHTML) {
-          const detailed = scaleAmountDetailed(
-            ing.originalAmount,
-            savedData.multiplier,
-            savedData.servingsWanted,
-            savedData.servingsOriginal
-          );
-          ing.scaledAmountHTML = detailed.displayHTML;
-          ing.scaledAmountPlain = detailed.displayPlain;
-          ing.perServingHTML = detailed.perServingHTML;
-          ing.perServingPlain = detailed.perServingPlain;
-          ing.rawOrigVal = detailed.rawOrigVal;
-          ing.rawScaledVal = detailed.rawScaledVal;
-          ing.unit = detailed.unit;
-        }
-      });
-
+      savedData.multiplier=savedData.servingsWanted/savedData.servingsOriginal;
+      const timeEst=estimateCookingTime();savedData.timeLine1=timeEst.line1;savedData.timeLine2=timeEst.line2;
+      savedData.refCode=typeof savedData.refCode==='string'?savedData.refCode.slice(0,30):'RCP-SAVED';
+      savedData.dateString=typeof savedData.dateString==='string'?savedData.dateString.slice(0,40):'Saved recipe';
+      savedData.receiptNum=typeof savedData.receiptNum==='string'?savedData.receiptNum.slice(0,30):'Saved recipe';
       // Render the saved result on the Right Leaf
-      renderResultCard(savedData);
+      try {renderResultCard(savedData);}catch(e){showValidationError("Saved recipe could not be restored. Original browser data was not changed. Re-enter the recipe to repair it.");rightPlaceholder.classList.remove("hidden");rightResult.classList.add("hidden");}
     } else {
+      if(savedData)showValidationError("Saved recipe is invalid. Browser data was not changed. Re-enter it to replace the record.");
       // Keep right leaf as placeholder
       rightPlaceholder.classList.remove('hidden');
       rightResult.classList.add('hidden');
@@ -939,9 +838,7 @@
     bookCoverPanel.classList.add('is-closed');
     bookCoverPanel.classList.remove('is-open');
 
-    setTimeout(function () {
-      openFolio();
-    }, 380);
+    openFolio();
 
     // 4. Attach Event Listeners
     if (bookCoverPanel) {
