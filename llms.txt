@@ -1,0 +1,2 @@
+# Heirloom Recipe Scaler
+Ingredient arithmetic for three ingredients, with fractions and local recipe persistence. Ingredient scaling does not establish cooking time, doneness or food safety. No network requests or accounts.
